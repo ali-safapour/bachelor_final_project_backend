@@ -1,0 +1,53 @@
+services:
+  postgres:
+    build:
+      context: ./Postgres
+    environment:
+      - POSTGRES_PASSWORD=1234
+    container_name: market-yaab-postgres-container
+    ports:
+      - "5632:5432"
+    restart: always
+    networks:
+      - market-yaab-net
+  swagger:
+    build:
+      context: ./Swagger UI
+    depends_on:
+      - postgres
+      - django
+    restart: always
+    ports:
+      - "7171:8080"
+    networks:
+      - market-yaab-net
+    environment:
+      - SWAGGER_JSON_URL=http://localhost:8000/v1/get_swagger_template
+  django:
+    build:
+      context: .
+    depends_on:
+      - postgres
+      - map
+    restart: always
+    container_name: market-yaab-django-container
+    environment:
+      - AM_I_IN_A_DOCKER_CONTAINER=True
+    networks:
+      - market-yaab-net
+    ports:
+      - "8005:8000"
+  map:
+    build:
+      context: ./Nominatim
+    restart: always
+    networks:
+      - market-yaab-net
+    environment:
+      - PBF_PATH=/data/Tehran.osm.pbf
+    ports:
+      - "8190:8080"
+    
+
+networks:
+  market-yaab-net:

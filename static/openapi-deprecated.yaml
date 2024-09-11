@@ -1,0 +1,378 @@
+openapi: 3.0.3
+info:
+  title: Market Yaab - OpenAPI 3.0
+  description: Market Yaab API Documentation
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/v1/
+tags:
+  - name: Sign Up and Login
+  # - name: Update entity data
+paths:
+  /sign_up:
+    post:
+      tags:
+        - Sign Up and Login
+      security: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - phone
+              - password
+              - user_role
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: 09100000000
+                password:
+                  type: string
+                  example: 12345678
+                user_role:
+                  type: string
+                  description: "must be in: [buyer, seller]"
+                  enum:
+                    - buyer
+                    - seller
+        required: true
+      responses:
+        '200':
+          description: Successful sign up
+          content:
+            application/json:
+              examples:
+                  seller_sign_up_response:
+                    summary: ریسپانس فروشنده
+                    value:
+                      server_message: "ثبت نام با موفقیت انجام شد"
+                      user_role: "seller"
+                      jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  buyer_sign_up_response:
+                    summary: ریسپانس خریدار
+                    value:
+                      server_message: "ثبت نام با موفقیت انجام شد"
+                      user_role: "buyer"
+                      jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+        '400':
+          description: Phone number already exists / Incorrect data structure
+          content:
+            application/json:
+              examples:
+                phone_exists:
+                  summary: شماره از قبل وجود دارد
+                  value:
+                    status_code: "1"
+                    server_message: "شماره تلفن از قبل وجود دارد"
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                
+          
+  /login:
+    post:
+      tags:
+        - Sign Up and Login
+      security: []  # No authentication required
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - phone
+              - password
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: 09100000000
+                password:
+                  type: string
+                  example: 12345678
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              examples:
+                seller_login_response:
+                  summary: ریسپانس فروشنده
+                  value:
+                    server_message: "ورود با موفقیت انجام شد"
+                    user_role: "seller"
+                    jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                buyer_login_response:
+                  summary: ریسپانس خریدار
+                  value:
+                    server_message: "ورود با موفقیت انجام شد"
+                    user_role: "buyer"
+                    jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  phone_exists:
+                    summary: "شماره تلفن یا رمزعبور وارد شده صحیح نیست"
+                    value:
+                      status_code: "1"
+                      server_message: "شماره تلفن یا رمزعبور وارد شده صحیح نیست"
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+  /set_person_information:
+    post:
+      tags:
+        - Update entity data
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Ali
+                last_name:
+                  type: string
+                  example: Safapour
+                email:
+                  type: string
+                  example: example@example.example
+                profile_picture:
+                  type: string
+                  format: binary
+                
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              example:
+                server_message: "اطلاعات کاربر با موفقیت به‌روز رسانی شد"
+
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+
+
+  /set_buyer_information:
+    post:
+      tags:
+        - Update entity data
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                current_location:
+                  type: string
+                  example: 36.2795N-50.0046E
+                credit:
+                  type: string
+                  example: 10
+                
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              example:
+                server_message: "اطلاعات کاربر با موفقیت به‌روز رسانی شد"
+
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+
+  /set_store:
+    post:
+      tags:
+        - Update entity data
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - store_name
+              properties:
+                store_name:
+                  type: string
+                  example: Walmart
+                profile_picture:
+                  type: string
+                  format: binary
+                saturday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                sunday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                monday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                tuesday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                wednesday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                thursday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                friday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              example:
+                server_message: "اطلاعات فروشگاه با موفقیت به‌روز رسانی شد"
+
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+
+  
+  # /update_person_information:
+  #   post:
+  #     tags:
+  #       - Update entity data
+  #     requestBody:
+  #       content:
+  #         multipart/form-data:
+  #           schema:
+  #             required:
+  #             - jwt
+  #             type: object
+  #             properties:
+  #               jwt:
+  #                 type: string
+  #                 example: 09100000000
+  #               first_name:
+  #                 type: string
+  #                 example: Ali
+  #               last_name:
+  #                 type: string
+  #                 example: Safapour
+  #               new_password:
+  #                 type: string
+  #                 example: 1234567
+  #               location:
+  #                 type: string
+  #                 example: 36.2795N-50.0046E
+  #               province:
+  #                 type: string
+  #                 example: Qazvin
+  #               neighborhood:
+  #                 type: string
+  #                 example: daneshgah
+  #               public_phone:
+  #                 type: string
+  #                 description: Only for sellers
+  #                 example: 09111111111
+  #               credit:
+  #                 type: string
+  #                 description: Only for buyers
+  #                 example: 10
+                
+  #       required: true
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #         content:
+  #           application/json:
+  #             example:
+  #               server_message: "اطلاعات کاربر با موفقیت به‌روز رسانی شد"
+
+  #       '400':
+  #         description: Invalid phone number or password
+  #         content:
+  #           application/json:
+  #             examples:
+  #                 invalidFieldsForUserrole:
+  #                   summary: "فیلدهای ارسالی با نقش کاربر تطابق ندارند"
+  #                   value:
+  #                     status_code: "2"
+  #                     server_message: "فیلدهای ارسالی با نقش کاربر تطابق ندارند"
+  #                 fieldsFilledWrongly:
+  #                   $ref: '#/components/examples/fieldsFilledWrongly'
+  #       '401':
+  #         description: Not authorized
+  #         content:
+  #           application/json:
+  #             schema:
+  #                 type: array
+  #                 items:
+  #                   $ref: '#/components/schemas/invalidToken'  
+
+components:
+  examples:
+    fieldsFilledWrongly:
+      summary: پر نشدن درست فیلدها
+      value:
+        status_code: "0"
+        server_message: "فیلدها را به درستی پر نکرده‌اید"
+  schemas:
+    invalidToken:
+      properties:
+        server_message:
+          type: string
+          example: "توکن ارسالی به سرور معتبر نیست. دوباره وارد شوید"
+    daysOfWeekWorkingTime:
+      type: object
+      properties:
+        is_holiday:
+          type: integer
+          example: 0
+        start_working_time:
+          type: string
+          example: "8:00"
+        end_working_time:
+          type: string
+          example: "21:00"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: [] 

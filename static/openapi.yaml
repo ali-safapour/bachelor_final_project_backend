@@ -1,0 +1,2641 @@
+openapi: 3.0.3
+info:
+  title: Market Yaab - OpenAPI 3.0
+  description: Market Yaab API Documentation
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/v1/
+tags:
+  - name: Sign Up and Login
+  - name: Customer APIs
+  - name: Vendor APIs
+  - name: Common APIs
+  - name: Utilities
+  - name: Deprecated
+paths:
+  /check_phone:
+    post:
+      tags:
+        - Sign Up and Login
+      security: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - phone
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: 09100000000
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              example:
+                server_message: "می‌توانید ثبت نام کنید"
+
+        '409':
+          description: Phone number already exists
+          content:
+            application/json:
+              examples:
+                phone_exists:
+                  summary: شماره از قبل وجود دارد
+                  value:
+                    server_message: "شماره تلفن از قبل وجود دارد"
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+
+  /sign_up_buyer:
+    post:
+      tags:
+        - Sign Up and Login
+      security: []  # No authentication required
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - phone
+              - password
+              - first_name
+              - last_name
+              - latitude
+              - longitude
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: 09100000000
+                password:
+                  type: string
+                  example: 12345678
+                first_name:
+                  type: string
+                  example: Ali
+                last_name:
+                  type: string
+                  example: Safapour
+                profile_picture:
+                  type: string
+                  format: binary
+                latitude:
+                  type: number
+                  format: double
+                  example: 35.769420
+                longitude:
+                  type: number
+                  format: double
+                  example: 51.453429
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              examples:
+                response:
+                  value:
+                    server_message: "ثبت‌نام با موفقیت انجام شد"
+                    user_role: "buyer"
+                    jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+                  outOfRangeCoordinatesError:
+                    $ref: '#/components/examples/outOfRangeCoordinatesError'
+                  notEnoughLocationInformation:
+                    $ref: '#/components/examples/notEnoughLocationInformation'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+        '503':
+          description: Map service error
+          content:
+            application/json:
+              examples:
+                  mapServiceError:
+                    $ref: '#/components/examples/mapServiceError'
+  /store_registration:
+    post:
+      tags:
+        - Sign Up and Login
+      security: []  # No authentication required
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - phone
+              - password
+              - owner_first_name
+              - owner_last_name
+              - store_latitude
+              - store_longitude
+              - store_name
+              - working_times
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: 09100000000
+                password:
+                  type: string
+                  example: 12345678
+                owner_first_name:
+                  type: string
+                  example: Ali
+                owner_last_name:
+                  type: string
+                  example: Safapour
+                owner_profile_picture:
+                  type: string
+                  format: binary
+                store_name:
+                  type: string
+                  example: Walmart
+                store_latitude:
+                  type: number
+                  format: double
+                  example: 35.767052
+                store_longitude:
+                  type: number
+                  format: double
+                  example: 51.444675
+                store_profile_picture:
+                  type: string
+                  format: binary
+                working_times:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      day_sequence_id:
+                        type: integer
+                        minimum: 1
+                        maximum: 7
+                      is_holiday_binary:
+                        type: integer
+                        minimum: 0
+                        maximum: 1
+                      times:
+                        type: object
+                        properties:
+                          start:
+                            type: string
+                            example: "10:00"
+                          end:
+                            type: string
+                            example: "20:00"
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              examples:
+                response:
+                  value:
+                    server_message: "ثبت‌نام با موفقیت انجام شد"
+                    user_role: "buyer"
+                    jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+                  outOfRangeCoordinatesError:
+                    $ref: '#/components/examples/outOfRangeCoordinatesError'
+                  notEnoughLocationInformation:
+                    $ref: '#/components/examples/notEnoughLocationInformation'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+        '503':
+          description: Map service error
+          content:
+            application/json:
+              examples:
+                  mapServiceError:
+                    $ref: '#/components/examples/mapServiceError'
+  
+  /login:
+    post:
+      tags:
+        - Sign Up and Login
+      security: []  # No authentication required
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - phone
+              - password
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: 09100000000
+                password:
+                  type: string
+                  example: 12345678
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              examples:
+                seller_login_response:
+                  summary: ریسپانس فروشنده
+                  value:
+                    server_message: "ورود با موفقیت انجام شد"
+                    user_role: "seller"
+                    jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                buyer_login_response:
+                  summary: ریسپانس خریدار
+                  value:
+                    server_message: "ورود با موفقیت انجام شد"
+                    user_role: "buyer"
+                    jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  phone_exists:
+                    summary: "شماره تلفن یا رمزعبور وارد شده صحیح نیست"
+                    value:
+                      server_message: "شماره تلفن یا رمزعبور وارد شده صحیح نیست"
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+
+  /favorite_locations:
+    get:
+      tags:
+        - Customer APIs
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    title:
+                      type: string
+                      example: تهران - منطقه یک
+                  example:
+                  - id: 1
+                    title: تهران - منطقه یک
+                    latitude: 36.2795
+                    longitude: 50.0046
+                  - id: 2
+                    title: شیراز - منطقه سه
+                    latitude: 29.5918
+                    longitude: 52.5836
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+  /add_favorite_location:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - latitude
+                - longitude
+              properties:
+                latitude:
+                  type: integer
+                  example: 35.773863602924806
+                longitude:
+                  type: integer
+                  example: 51.44946524213527
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  server_message: مکان جدید اضافه شد
+                  id: 1
+                  title: تهران - منطقه یک
+                  latitude: 36.2795
+                  longitude: 50.0046
+                  
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                samePlaceExists:
+                  $ref: '#/components/examples/samePlaceExists'
+                outOfRangeCoordinatesError:
+                  $ref: '#/components/examples/outOfRangeCoordinatesError'
+                notEnoughLocationInformation:
+                    $ref: '#/components/examples/notEnoughLocationInformation'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /remove_favorite_location:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - favorite_location_id
+              properties:
+                favorite_location_id:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  server_message: مکان موردنظر حذف شد
+                  
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                atLeastOnePlace:
+                  summary: حداقل یک مکان منتخب باید باقی‌بماند
+                  value:
+                    server_message: حداقل یک مکان منتخب باید باقی‌بماند
+                  
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /edit_favorite_location:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - favorite_location_id
+                - latitude
+                - longitude
+              properties:
+                favorite_location_id:
+                  type: integer
+                  example: 1
+                latitude:
+                  type: number
+                  example: 50.0046
+                longitude:
+                  type: number
+                  example: 36.2795
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  server_message: مکان انتخابی ویرایش شد
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                samePlaceExists:
+                  $ref: '#/components/examples/samePlaceExists'
+                outOfRangeCoordinatesError:
+                  $ref: '#/components/examples/outOfRangeCoordinatesError'
+                notEnoughLocationInformation:
+                    $ref: '#/components/examples/notEnoughLocationInformation'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /nearby_products:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - favorite_location_id
+              - group_number
+              type: object
+              properties:
+                favorite_location_id:
+                  type: integer
+                  example: 1
+                group_number:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                productExists:
+                  summary: کالا وجود دارد
+                  value:
+                    group_number: 1
+                    products_per_group: 20
+                    products:
+                    - product_id: 12
+                      picture_id: ''
+                      title: 'سبزی قورمه‌ای'
+                      unit: 'کیلوگرم'
+                      price_per_unit: '30000'
+                      distance: '2 کیلومتر'
+                      expire_time: 1724178521
+                    - product_id: 45
+                      picture_id: 'vd5euns4d4'
+                      title: 'پنیر لیقوان'
+                      unit: 'کیلوگرم'
+                      price_per_unit: '80000'
+                      distance: '2 کیلومتر'
+                      expire_time: 1724141521
+                productDoesNotExists:
+                  summary: کالا وجود ندارد
+                  value:
+                    group_number: 16
+                    products_per_group: 20
+                    products: []
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+  /cart_items:
+    get:
+      tags:
+        - Customer APIs
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                    products:
+                      - product_id: 1
+                        title: 'کاهوی تازه'
+                        cart_item_id: 1
+                        picture_id: 'sdf1dv_hbvgjhk-5d2s='
+                        cart_item_amount: 2
+                        available_amount: 5
+                        unit: 'کیلوگرم'
+                        price_per_unit: 200000
+                        store:
+                          id: 1
+                          name: برادران کاهو فروش
+                          latitude: 30.12154
+                          longitude: 50.12354
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /add_to_cart:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - product_id
+              - amount
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+                amount:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                    products:
+                      - product_id: 1
+                        title: 'کاهوی تازه'
+                        cart_item_id: 1
+                        picture_id: 'sdf1dv_hbvgjhk-5d2s='
+                        cart_item_amount: 2
+                        available_amount: 10
+                        unit: 'کیلوگرم'
+                        price_per_unit: 200000
+                        store:
+                          id: 1
+                          name: برادران کاهو فروش
+                          latitude: 30.12154
+                          longitude: 50.12354
+        '400':
+          description: Client Error
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                productNotFound:
+                  $ref: '#/components/examples/productNotFound'
+                desiredAmountIsUnavailable:
+                  summary: مقدار انتخاب شده بیشتر از موجودی کالا است
+                  value:
+                    server_message: مقدار انتخابی بیشتر از موجودی کالا است
+
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /remove_from_cart:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - product_id
+              - amount
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+                amount:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                    products:
+                      - product_id: 1
+                        title: 'کاهوی تازه'
+                        cart_item_id: 1
+                        picture_id: 'sdf1dv_hbvgjhk-5d2s='
+                        cart_item_amount: 2
+                        available_amount: 10
+                        unit: 'کیلوگرم'
+                        price_per_unit: 200000
+                        store:
+                          id: 1
+                          name: برادران کاهو فروش
+                          latitude: 30.12154
+                          longitude: 50.12354
+
+
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                productNotFound:
+                  $ref: '#/components/examples/productNotFound'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  
+  /finalize_cart:
+    post:
+      tags:
+        - Customer APIs
+      responses:
+        '200':
+          description: 'List of current products'
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                noCreditOrTooMuchProducts:
+                    summary: اعتبار کافی نیست یا کالا به اندازه کافی موجود نیست
+                    value:
+                      server_message: کالا به اندازه کافی موجود نیست
+                      products:
+                        - product_id: 1
+                          title: 'کاهوی تازه'
+                          cart_item_id: 1
+                          picture_id: 'sdf1dv_hbvgjhk-5d2s='
+                          cart_item_amount: 2
+                          available_amount: 1
+                          unit: 'کیلوگرم'
+                          price_per_unit: 200000
+                          store:
+                            id: 1
+                            name: برادران کاهو فروش
+                            latitude: 30.12154
+                            longitude: 50.12354
+                successfulOperation:
+                  summary: موفقیت
+                  value:
+                    server_message: خرید با موفقیت انجام شد
+                    products: []
+        '400':
+          description: No products in cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  server_message: 
+                    type: string
+                    example: "کالایی در سبد خرید وجود ندارد"
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+
+  /orders_list:
+    get:
+      tags:
+        - Customer APIs
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  possible_order_status:
+                    - در انتظار تحویل
+                    - تحویل گرفته شده
+                    - لغو شده
+                  orders:
+                    - order_id: 1
+                      store_name: فروشگاه نفیس
+                      secret_phrase: 63ef01dbb303
+                      total_purchase_price: 75000
+                      minutes_left: 25
+                      order_date: '1399/10/12 03:30'
+                      status: 'در انتظار تحویل' 
+                    - order_id: 5
+                      store_name: فروشگاه یگانه
+                      secret_phrase: "-1"
+                      total_purchase_price: 75000
+                      minutes_left: -1
+                      order_date: '1399/11/12 03:30'
+                      status: تحویل گرفته شده
+                    - order_id: 14
+                      store_name: فروشگاه نسترن
+                      secret_phrase: "-1"
+                      total_purchase_price: 120000
+                      minutes_left: -1
+                      order_date: '1399/12/12 03:30'
+                      status: لغو شده
+                      
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'
+  /order_products:
+    post:
+      tags:
+        - Common APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - order_id
+              type: object
+              properties:
+                order_id:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                buyerResponse:
+                  summary: پاسخ دریافت شده توسط خریدار
+                  value:
+                    example:
+                      order_id: 1
+                      seller:
+                        name: رضا
+                        phone: 0905454541
+                      total_purchase_price: 75000
+                      minutes_left: 25
+                      order_date: '1399/10/12 03:30'
+                      status: 'در انتظار تحویل' 
+                      secret_phrase: "-1"
+                      store:
+                        - id: 1
+                          name: فروشگاه نفیس
+                          latitude: 30.12154
+                          longitude: 50.12354
+                      products:
+                        - product_id: 1
+                          title: نوشابه
+                          picture_id: sdf1dv_hbvgjhk-5d2s=
+                          amount: 2
+                          unit: عدد
+                          price_per_unit: 30000
+                sellerResponse:
+                  summary: پاسخ دریافت شده توسط فروشنده
+                  value:
+                    example:
+                      order_id: 1
+                      buyer:
+                        name: رضا
+                        phone: 0905454541
+                      total_purchase_price: 75000
+                      minutes_left: 25
+                      order_date: '1399/10/12 03:30'
+                      status: 'در انتظار تحویل' 
+                      products:
+                        - product_id: 1
+                          title: نوشابه
+                          picture_id: sdf1dv_hbvgjhk-5d2s=
+                          amount: 2
+                          unit: عدد
+                          price_per_unit: 30000
+        '400':
+          description: No such an order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  server_message: 
+                    type: string
+                    example: "چنین سفارشی برای شما وجود ندارد"             
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'
+
+
+  /category_products:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - favorite_location_id
+              - group_number
+              - category_id
+              type: object
+              properties:
+                favorite_location_id:
+                  type: integer
+                  example: 1
+                group_number:
+                  type: integer
+                  example: 1
+                category_id:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                productExists:
+                  summary: کالا وجود دارد
+                  value:
+                    group_number: 1
+                    products_per_group: 20
+                    category:
+                      id: 12
+                      name: سبزیجات
+                    products:
+                    - product_id: 12
+                      picture_id: ''
+                      title: 'سبزی قورمه‌ای'
+                      unit: 'کیلوگرم'
+                      price_per_unit: '30000'
+                      distance: '2 کیلومتر'
+                      expire_time: 1724178521
+                    - product_id: 45
+                      picture_id: 'vd5euns4d4'
+                      title: 'پنیر لیقوان'
+                      unit: 'کیلوگرم'
+                      price_per_unit: '80000'
+                      distance: '2 کیلومتر'
+                      expire_time: 1724141521
+                productDoesNotExists:
+                  summary: کالا وجود ندارد
+                  value:
+                    group_number: 16
+                    products_per_group: 20
+                    products: []
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+  /get_stores:
+    get:
+      tags:
+        - Customer APIs
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  stores:
+                  - id: 12
+                    name: فروشگاه نفیس
+                    latitude: 36.2795
+                    longitude: 50.0046
+                    picture_id: 456s132064*jhbv=
+
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+        '503':
+          description: Map service error
+          content:
+            application/json:
+              examples:
+                  mapServiceError:
+                    $ref: '#/components/examples/mapServiceError'
+  /store_details:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - store_id
+              type: object
+              properties:
+                store_id:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  seller:
+                    name: پارسا علیزاده
+                    phone: 09100000000
+                  store:
+                    id: 12
+                    name: فروشگاه نفیس
+                    latitude: 36.2795
+                    longitude: 50.0046
+                    picture_id: 456s132064*jhbv=
+                  products:
+                  - id: 1
+                    picture_id: ""
+                    title: "سبزی قورمه‌ای"
+                    unit: "کیلوگرم"
+                    price_per_unit: "30000"
+                    expire_time: 1724178521
+                    available_amount: 230
+
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+        '503':
+          description: Map service error
+          content:
+            application/json:
+              examples:
+                  mapServiceError:
+                    $ref: '#/components/examples/mapServiceError'
+  
+  /get_profile:
+    get:
+      tags:
+        - Customer APIs
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  first_name: علی
+                  last_name: صفاپور
+                  phone: 09100000000
+                  email: example@example.example
+                  wallet_credit: 2500000
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /update_profile:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: علی
+                last_name:
+                  type: string
+                  example: صفاپور
+                password:
+                  type: string
+                  example: 1234567
+                email: 
+                  type: string
+                  example: example@example.example
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  first_name: علی
+                  last_name: صفاپور
+                  phone: 09100000000
+                  email: example@example.example
+                  wallet_credit: 2500000
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /increase_wallet_credit:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: string
+                  example: 120000
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  wallet_credit: 2500000
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /get_my_comments:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - group_number
+              properties:
+                group_number:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                    group_number: 1
+                    group_size: 10
+                    comments:
+                      - comment_id: 1
+                        writer: علی
+                        submission_time: 1785652332
+                        title: خوب
+                        description: کالای خوبی بود
+                        user_score: 4
+                        product:
+                          id: 1
+                          title: کاهوی تازه
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                userDontOwnTheObjectOrObjectDoesNotExist:
+                  $ref: '#/components/examples/userDontOwnTheObjectOrObjectDoesNotExist'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'
+
+  /get_product_comments:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - product_id
+                - group_number
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+                group_number:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                    group_number: 1
+                    group_size: 10
+                    comments:
+                      - comment_id: 1
+                        writer: علی
+                        submission_time: 1785652332
+                        title: خوب
+                        description: کالای خوبی بود
+                        user_score: 4
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                userDontOwnTheObjectOrObjectDoesNotExist:
+                  $ref: '#/components/examples/userDontOwnTheObjectOrObjectDoesNotExist'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /add_comment:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - product_id
+                - title
+                - description
+                - user_score
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: خوب
+                description:
+                  type: string
+                  example: کالاهای خوبی بود
+                user_score:
+                  type: number
+                  minimum: 0
+                  maximum: 5
+                  example: 2.1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  server_message: دیدگاه شما با موفقیت ثبت شد
+                  comment_id: 1
+                  writer: علی
+                  submission_time: 1785652332
+                  title: خوب
+                  description: کالای خوبی بود
+                  user_score: 4
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /edit_comment:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - comment_id
+                - title
+                - description
+                - user_score
+              properties:
+                comment_id:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: خوب
+                description:
+                  type: string
+                  example: کالاهای خوبی بود
+                user_score:
+                  type: number
+                  minimum: 0
+                  maximum: 5
+                  example: 2.1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  server_message: دیدگاه شما ویرایش شد
+                  comment_id: 1
+                  writer: علی
+                  submission_time: 1785652332
+                  title: خوب
+                  description: کالای خوبی بود
+                  user_score: 4
+                  product:
+                      id: 1
+                      title: کاهوی تازه
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                userDontOwnTheObjectOrObjectDoesNotExist:
+                  $ref: '#/components/examples/userDontOwnTheObjectOrObjectDoesNotExist'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /remove_comment:
+    post:
+      tags:
+        - Customer APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - comment_id
+              properties:
+                comment_id:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  server_message: دیدگاه شما حذف شد
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                userDontOwnTheObjectOrObjectDoesNotExist:
+                  $ref: '#/components/examples/userDontOwnTheObjectOrObjectDoesNotExist'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+
+
+
+  # Vendor APIs
+
+  /get_seller_products:
+    post:
+      tags:
+        - Vendor APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - group_number
+              type: object
+              properties:
+                group_number:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                  type: object
+                  example:
+                    group_number: 1
+                    products_per_group: 10
+                    products:
+                      - product_id: 1
+                        title: 'کاهوی تازه'
+                        picture_id: 'sdf1dv_hbvgjhk-5d2s='
+                        available_amount: 10
+                        unit: 'کیلوگرم'
+                        price_per_unit: 200000
+        '400':
+          description: Client Error
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                productNotFound:
+                  $ref: '#/components/examples/productNotFound'
+
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  
+  /remove_product:
+    post:
+      tags:
+        - Vendor APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - product_id
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                  type: object
+                  example:
+                    server_message: محصول انتخاب شده با موفقیت حذف شد
+        '400':
+          description: Client Error
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                vendorProductNotFound:
+                  $ref: '#/components/examples/vendorProductNotFound'
+
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'
+  /get_product_unit_types:
+    get:
+      tags:
+        - Vendor APIs
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                  - id: 1
+                    name: عدد
+                  - id: 2
+                    name: کیلوگرم
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  
+  /get_product_general_properties:
+    post:
+      tags:
+        - Vendor APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - category_id
+              type: object
+              properties:
+                category_id:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                  - id: 1
+                    name: برند
+                    input_type: "string"
+                  - id: 2
+                    name: تاریخ تولید
+                    input_type: "calendar"
+                  - id: 2
+                    name: کد تولید
+                    input_type: "integer"
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+
+  /get_product_exclusive_properties:
+    post:
+      tags:
+        - Vendor APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - sub_category_id
+              type: object
+              properties:
+                sub_category_id:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                  - id: 1
+                    name: درصد چربی
+                    input_type: "integer"
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'
+
+  /add_product:
+    post:
+      tags:
+        - Vendor APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - title
+              - description
+              - expire_time_epoch
+              - price_per_unit
+              - unit_type_id
+              - available_amount
+              - category_id
+              - picture
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: کلم مشکی
+                description:
+                  type: string
+                  example: متن تست
+                expire_time_epoch:
+                  type: integer
+                  example: 178956232
+                price_per_unit:
+                  type: integer
+                  example: 50000
+                unit_type_id:
+                  type: integer
+                  example: 1
+                available_amount:
+                  type: number
+                  example: 250
+                category_id:
+                  type: integer
+                  example: 8
+                sub_category_id:
+                  type: integer
+                  example: 1
+                general_properties:
+                  type: string
+                  example:
+                    - id: 3
+                      value: 63
+                    - id: 2
+                      value: مازندران
+                exclusive_properties:
+                  type: string
+                  example:
+                    - id: 2
+                      value: مشکی
+                picture:
+                  type: string
+                  format: binary
+                
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                  - product_id: 1
+                    title: کاهوی تازه
+                    picture_id: "sdf1dv_hbvgjhk-5d2s="
+                    description: این کاهو دیروز برداشت شده است.
+                    price_per_unit: 20000
+                    unit: کیلوگرم
+                    product_score: 0
+                    category:
+                      id: 1
+                      name: سبزیجات 
+                    sub_category:
+                      id: 1
+                      name: کاهو
+                    store:
+                        id: 1
+                        name: برادران کاهو فروش
+                        latitude: 30.12154
+                        longitude: 50.12354
+                    comments: []
+                    properties:
+                      - title: محل کشت
+                        value: تبریز
+                      - title: تاریخ برداشت
+                        value: date-1724146167
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                productNotFound:
+                  $ref: '#/components/examples/productNotFound'
+                favoriteLocationNotFound:
+                  $ref: '#/components/examples/favoriteLocationNotFound'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /edit_product:
+    post:
+      tags:
+        - Vendor APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - product_id
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: کلم مشکی
+                description:
+                  type: string
+                  example: متن تست
+                expire_time_epoch:
+                  type: integer
+                  example: 178956232
+                price_per_unit:
+                  type: integer
+                  example: 50000
+                unit_type_id:
+                  type: integer
+                  example: 1
+                available_amount:
+                  type: number
+                  example: 250
+                category_id:
+                  type: integer
+                  example: 8
+                sub_category_id:
+                  type: integer
+                  example: 1
+                general_properties:
+                  type: string
+                  example:
+                    - id: 3
+                      value: 63
+                    - id: 2
+                      value: مازندران
+                exclusive_properties:
+                  type: string
+                  example:
+                    - id: 2
+                      value: مشکی
+                picture:
+                  type: string
+                  format: binary
+                
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                  - product_id: 1
+                    title: کاهوی تازه
+                    picture_id: "sdf1dv_hbvgjhk-5d2s="
+                    description: این کاهو دیروز برداشت شده است.
+                    price_per_unit: 20000
+                    unit: کیلوگرم
+                    product_score: 4.7
+                    available_amount: 50
+                    category:
+                      id: 1
+                      name: سبزیجات 
+                    sub_category:
+                      id: 1
+                      name: کاهو
+                    store:
+                        id: 1
+                        name: برادران کاهو فروش
+                        latitude: 30.12154
+                        longitude: 50.12354
+                    comments:
+                      - comment_id: 45
+                        writer: Hoda Eskandari
+                        title: عالی بود
+                        description: کیفیت کالا عالی بود
+                        submission_time_epoch: 1785652332
+                        user_score: 4.5
+                    properties:
+                      - title: محل کشت
+                        value: تبریز
+                      - title: تاریخ برداشت
+                        value: date-1724146167
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                vendorProductNotFound:
+                  $ref: '#/components/examples/vendorProductNotFound'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /get_seller_profile:
+    get:
+      tags:
+        - Vendor APIs
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  store_name: فروشگاه نسترن
+                  store_picture: "<picture id>"
+                  store_location:
+                    title: نیاوران، منطقه یک شهر تهران
+                    latitude: 38.2125
+                    longitude: 35.2415
+                  working_times:
+                    - day_sequence_id: 0
+                      is_holiday_binary: 0
+                      times:
+                        start: "10:00"
+                        end: "20:00"
+                  seller_name: پارسا
+                  seller_lastname: علیزاده
+                  phone: 09011111110
+                  wallet_credit: 3000000
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /edit_seller_profile:
+    post:
+      tags:
+        - Vendor APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                seller_name:
+                  type: integer
+                  example: پارسا
+                seller_lastname:
+                  type: integer
+                  example: علیزاده
+                password:
+                  type: string
+                  example: 12345678
+                store_name:
+                  type: string
+                  example: فروشگاه نسترن
+                store_picture:
+                  type: string
+                  format: binary
+                store_latitude:
+                  type: number
+                  example: 35.769002
+                store_longitude:
+                  type: number
+                  example: 51.456519
+                working_times:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      day_sequence_id:
+                        type: integer
+                        minimum: 1
+                        maximum: 7
+                      is_holiday_binary:
+                        type: integer
+                        minimum: 0
+                        maximum: 1
+                      times:
+                        type: object
+                        properties:
+                          start:
+                            type: string
+                            example: "10:00"
+                          end:
+                            type: string
+                            example: "20:00"
+
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  store_name: فروشگاه نسترن
+                  store_picture: "<picture id>"
+                  store_location:
+                    title: نیاوران، منطقه یک شهر تهران
+                    latitude: 38.2125
+                    longitude: 35.2415
+                  working_times:
+                    - day_sequence_id: 0
+                      is_holiday_binary: 0
+                      times:
+                        start: "10:00"
+                        end: "20:00"
+                  seller_name: پارسا
+                  seller_lastname: علیزاده
+                  phone: 09011111110
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /get_seller_orders:
+    post:
+      tags:
+        - Vendor APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - in_progress_orders
+              properties:
+                in_progress_orders:
+                  type: integer
+                  example: 0
+        required: true
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  possible_order_status:
+                    - در انتظار تحویل
+                    - تحویل گرفته شده
+                    - لغو شده
+                  orders:
+                    - order_id: 5
+                      total_purchase_price: 75000
+                      minutes_left: -1
+                      order_date: '1399/11/12 03:30'
+                      status: تحویل گرفته شده
+                      customer:
+                        name: علی صفاپور
+                        phone: 09100000000
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+
+  /complete_order:
+    post:
+      tags:
+        - Vendor APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - secret_phrase
+              properties:
+                secret_phrase:
+                  type: string
+                  example: "aaaaaaaaaaaaaaaa"
+        required: true
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  server_message: سفارش با موفقیت تکمیل شد
+                  order_id: 5
+        '400':
+          description: Invalid order
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  server_message: چنین سفارش فعالی وجود ندارد
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  
+
+
+# Common APIs
+  /product_details:
+    post:
+      tags:
+        - Common APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - product_id
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+                favorite_location_id:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                  - product_id: 1
+                    title: کاهوی تازه
+                    picture_id: "sdf1dv_hbvgjhk-5d2s="
+                    description: این کاهو دیروز برداشت شده است.
+                    price_per_unit: 20000
+                    unit:
+                      id: 1
+                      name: کیلوگرم
+                    distance: 2 کیلومتر
+                    product_score: 4.7
+                    amount_in_cart: 5
+                    category:
+                      id: 1
+                      name: سبزیجات 
+                    sub_category:
+                      id: 1
+                      name: کاهو
+                    store:
+                        id: 1
+                        name: برادران کاهو فروش
+                        latitude: 30.12154
+                        longitude: 50.12354
+                    comments:
+                      - comment_id: 45
+                        writer: Hoda Eskandari
+                        title: عالی بود
+                        description: کیفیت کالا عالی بود
+                        submission_time_epoch: 1785652332
+                        user_score: 4.5
+                    properties:
+                      - title: محل کشت
+                        value: تبریز
+                      - title: تاریخ برداشت
+                        value: date-1724146167
+                  - product_id: 2
+                    title: نوشابه مشکی
+                    picture_id: "1dv_hbvgjhk-5d2s="
+                    description: نوشابه خنک
+                    price_per_unit: 30000
+                    unit: کیلوگرم
+                    distance: 2 کیلومتر
+                    product_score: -1
+                    amount_in_cart: 2
+                    category:
+                      id: 1
+                      name: سبزیجات 
+                    sub_category:
+                      id: 1
+                      name: کاهو
+                    store:
+                        id: 1
+                        name: برادران کاهو فروش
+                        latitude: 30.12154
+                        longitude: 50.12354
+                    comments: []
+                    properties: 
+                       general:
+                        - id: 1
+                          title: تاریخ برداشت
+                          value: date-1724146167 
+                       exclusive: []
+                        
+
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+                productNotFound:
+                  $ref: '#/components/examples/productNotFound'
+                favoriteLocationNotFound:
+                  $ref: '#/components/examples/favoriteLocationNotFound'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  
+  /get_product_categories:
+    get:
+      tags:
+        - Common APIs
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  type: object
+                  example:
+                  - id: 1
+                    name: لبنیات
+                    picture_id: "sdf15d2s"
+                  - id: 2
+                    name: میوه
+                    picture_id: "df4dk74e"
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+  /get_product_sub_categories:
+    post:
+      tags:
+        - Common APIs
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - category_id
+              type: object
+              properties:
+                category_id:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                  type: object
+                  example:
+                  - id: 1
+                    name: شیر
+                  - id: 2
+                    name: پنیر
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+
+#  Utilities
+  
+  /get_picture:
+    get:
+      tags:
+        - Utilities
+      parameters:
+        - in: query
+          name: picture_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+
+  /place_recommender:
+    post:
+      tags:
+        - Utilities
+      security: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - query
+              type: object
+              properties:
+                query:
+                  type: string
+                  example: "پارک"
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - place_id: 150637,
+                    licence: Data © OpenStreetMap contributors, ODbL 1.0. https://osm.org/copyright
+                    osm_type: way
+                    osm_id: 36471649
+                    boundingbox: [
+                      35.7004696,
+                      35.7017352,
+                      51.3615099,
+                      51.3615526
+                    ]
+                    lat: 35.7009189
+                    lon: 51.3615377
+                    display_name: باغبان, شادمان, منطقه 2 شهر تهران, تهران, 13456-97939, ایران,
+                    place_rank: 26
+                    category: highway
+                    type: residential
+                    importance: 0.1533433333333333
+
+        '400':
+          description: Incorrect data structure
+          content:
+            application/json:
+              examples:
+                fieldsFilledWrongly:
+                  $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken' 
+        '503':
+          description: Map service error
+          content:
+            application/json:
+              examples:
+                  mapServiceError:
+                    $ref: '#/components/examples/mapServiceError'
+
+  
+  # -----------------------------------      
+  /set_person_information:
+    post:
+      tags:
+        - Deprecated
+      deprecated: true
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Ali
+                last_name:
+                  type: string
+                  example: Safapour
+                email:
+                  type: string
+                  example: example@example.example
+                profile_picture:
+                  type: string
+                  format: binary
+                
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              example:
+                server_message: "اطلاعات کاربر با موفقیت به‌روز رسانی شد"
+
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+
+
+  /set_buyer_information:
+    post:
+      tags:
+        - Deprecated
+      deprecated: true
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                current_location:
+                  type: string
+                  example: 36.2795N-50.0046E
+                credit:
+                  type: string
+                  example: 10
+                
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              example:
+                server_message: "اطلاعات کاربر با موفقیت به‌روز رسانی شد"
+
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+
+  /set_store:
+    post:
+      tags:
+        - Deprecated
+      deprecated: true
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - store_name
+              properties:
+                store_name:
+                  type: string
+                  example: Walmart
+                profile_picture:
+                  type: string
+                  format: binary
+                saturday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                sunday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                monday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                tuesday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                wednesday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                thursday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                friday:
+                  $ref: '#/components/schemas/daysOfWeekWorkingTime' 
+                
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              example:
+                server_message: "اطلاعات فروشگاه با موفقیت به‌روز رسانی شد"
+
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              examples:
+                  fieldsFilledWrongly:
+                    $ref: '#/components/examples/fieldsFilledWrongly'
+        '401':
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/invalidToken'  
+
+components:
+  examples:
+    fieldsFilledWrongly:
+      summary: پر نشدن درست فیلدها
+      value:
+        server_message: "فیلدها را به درستی پر نکرده‌اید"
+    productNotFound:
+      summary: محصول وجود ندارد
+      value:
+        server_message: "چنین محصولی وجود ندارد"
+    vendorProductNotFound:
+      summary: محصول وجود ندارد
+      value:
+        server_message: "شما چنین محصولی ندارید"
+    favoriteLocationNotFound:
+      summary: مکان منتخب وجود ندارد
+      value:
+        server_message: "مکان منتخبی انتخابی برای شما ثبت نشده است"
+    mapServiceError:
+      summary: سرویس نقشه در دسترس نیست
+      value:
+        server_message: "سرویس نقشه در دسترس نیست"
+    outOfRangeCoordinatesError:
+        summary: خطای سرویس نقشه
+        value:
+          server_message: "نقطه انتخابی جزو محدوده قابل انتخاب نیست"
+    notEnoughLocationInformation:
+        summary: جزئیات ناکافی
+        value:
+          server_message: مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید
+    
+    userDontOwnTheObjectOrObjectDoesNotExist:
+        summary: دسترسی لازم وجود ندارد یا چیزی برای تغییر وجود ندارد
+        value:
+          server_message: "عملیات درخواست شده موفقیت آمیز نبود"
+    samePlaceExists:
+      summary: مکان انتخاب شده نزدیک به یکی از مکان‌های قبلی است
+      value: 
+        server_message: مکان انتخاب شده نزدیک به یکی از مکان‌های قبلی است
+  schemas:
+    invalidToken:
+      properties:
+        server_message:
+          type: string
+          example: "توکن ارسالی به سرور معتبر نیست. دوباره وارد شوید"
+    daysOfWeekWorkingTime:
+      type: object
+      properties:
+        is_holiday:
+          type: integer
+          example: 0
+        start_working_time:
+          type: string
+          example: "8:00"
+        end_working_time:
+          type: string
+          example: "21:00"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: [] 
