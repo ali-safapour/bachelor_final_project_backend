@@ -12,4 +12,4 @@ def haversine(lat1, lon1, lat2, lon2):
         math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-    return R * c 
+    return int(R * c * 1000)

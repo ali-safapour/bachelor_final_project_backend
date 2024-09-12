@@ -466,6 +466,10 @@ paths:
                 type: object
                 example:
                   server_message: مکان انتخابی ویرایش شد
+                  id: 1
+                  title: دروس، منطقه ۳ شهر تهران
+                  latitude: 35.24121, 
+                  longitude: 51.45231
         '400':
           description: Incorrect data structure
           content:
@@ -580,6 +584,7 @@ paths:
                         available_amount: 5
                         unit: 'کیلوگرم'
                         price_per_unit: 200000
+                        epoch_expire_time: 1785412120
                         store:
                           id: 1
                           name: برادران کاهو فروش
@@ -639,6 +644,7 @@ paths:
                         available_amount: 10
                         unit: 'کیلوگرم'
                         price_per_unit: 200000
+                        epoch_expire_time: 1785412120
                         store:
                           id: 1
                           name: برادران کاهو فروش
@@ -705,6 +711,7 @@ paths:
                         available_amount: 10
                         unit: 'کیلوگرم'
                         price_per_unit: 200000
+                        epoch_expire_time: 1785412120
                         store:
                           id: 1
                           name: برادران کاهو فروش
@@ -1047,9 +1054,13 @@ paths:
             schema:
               required:
               - store_id
+              - favorite_location_id
               type: object
               properties:
                 store_id:
+                  type: integer
+                  example: 1
+                favorite_location_id:
                   type: integer
                   example: 1
         required: true
@@ -1078,6 +1089,13 @@ paths:
                     price_per_unit: "30000"
                     expire_time: 1724178521
                     available_amount: 230
+                  working_times:
+                  - day_sequence_id: 1
+                    is_holiday_binary: 0
+                    times:
+                      start: 8:00
+                      end: 23:00
+                  distance: 130
 
         '400':
           description: Incorrect data structure
@@ -1233,7 +1251,7 @@ paths:
                     comments:
                       - comment_id: 1
                         writer: علی
-                        submission_time: 1785652332
+                        submission_time_epoch: 1785652332
                         title: خوب
                         description: کالای خوبی بود
                         user_score: 4
@@ -1291,7 +1309,7 @@ paths:
                     comments:
                       - comment_id: 1
                         writer: علی
-                        submission_time: 1785652332
+                        submission_time_epoch: 1785652332
                         title: خوب
                         description: کالای خوبی بود
                         user_score: 4

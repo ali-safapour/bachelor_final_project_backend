@@ -42,8 +42,6 @@ def order_handler():
                 res = dictfetchall(cursor)
                 # We use buyer id to inform user that his/her order has been
                 # canceled
-                if res:
-                    print(res, 'has been canceled')
                 for item in res:
                     cursor.execute(
                         """

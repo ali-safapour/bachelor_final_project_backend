@@ -122,7 +122,6 @@ class AllowMethodBasedOnRole(MiddlewareMixin):
             return None
         # if 'user_role' not in request:
         #     return None
-        print('this is the user role ', request.user_role)
         buyer_methods = [
             'favorite_locations',
             'add_favorite_location',
@@ -141,7 +140,6 @@ class AllowMethodBasedOnRole(MiddlewareMixin):
             'update_profile',
             'increase_wallet_credit',
             'get_my_comments',
-            'get_product_comments',
             'add_comment',
             'edit_comment',
             'remove_comment'
@@ -165,7 +163,8 @@ class AllowMethodBasedOnRole(MiddlewareMixin):
             'get_product_categories',
             'get_product_sub_categories',
             'get_picture',
-            'place_recommender'
+            'place_recommender',
+            'get_product_comments'
         ]
         invalid_access = False
         if request.user_role in ['seller', 'buyer']:
@@ -178,7 +177,13 @@ class AllowMethodBasedOnRole(MiddlewareMixin):
             if request.path not in [
                 'admin_login',
                 'admin_top_bar',
-                'admin_orders_list'
+                'admin_orders_list',
+                'admin_superior_stores',
+                'test',
+                'admin_superior_customers', 
+                'admin_today_completed_orders',
+                'admin_best_selling_products',
+                'customers_pie_chart'
             ]:
                 invalid_access = True
         if invalid_access:

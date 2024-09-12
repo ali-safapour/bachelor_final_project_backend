@@ -55,4 +55,10 @@ urlpatterns = [
     path('admin_login', admin_login),
     path('admin_orders_list', admin_orders_list),
     path('admin_top_bar', admin_top_bar),
+    path('admin_superior_stores', admin_superior_stores),
+    path('test', test),
+    path('admin_superior_customers', admin_superior_customers),
+    path('admin_today_completed_orders', admin_today_completed_orders),
+    path('admin_best_selling_products', admin_best_selling_products),
+    path('customers_pie_chart', customers_pie_chart),
 ]
