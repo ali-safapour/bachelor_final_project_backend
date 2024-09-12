@@ -122,7 +122,6 @@ class AllowMethodBasedOnRole(MiddlewareMixin):
             return None
         # if 'user_role' not in request:
         #     return None
-        print('this is the user role ', request.user_role)
         buyer_methods = [
             'favorite_locations',
             'add_favorite_location',

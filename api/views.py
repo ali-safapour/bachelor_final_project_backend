@@ -65,15 +65,12 @@ def api_documentation(request):
 
 @api_view(['POST'])
 def check_phone(request):
-    response = dict()
-    response.update(
-        {
-            'server_message': 'فیلدها را به درستی پر نکرده‌اید'
-        }
-    )
-    phone = request.POST.get('phone')
-    if not carrier._is_mobile(number_type(phonenumbers.parse(phone, "IR"))):
-        return Response(response, status=400)
+    try:
+        phone = str(int(request.POST.get('phone')))
+        if not carrier._is_mobile(number_type(phonenumbers.parse(phone, "IR"))):
+            raise Exception
+    except:
+        return Response(invalid_fields_response, status=400)
 
     with connection.cursor() as cursor:
         with transaction.atomic():
@@ -97,21 +94,18 @@ def check_phone(request):
 
 @api_view(['POST'])
 def sign_up_buyer(request):
-    response = dict()
-    response.update(
-        {
-            'server_message': 'فیلدها را به درستی پر نکرده‌اید'
-        }
-    )
-    phone = request.POST.get('phone')
-    if not carrier._is_mobile(number_type(phonenumbers.parse(phone, "IR"))):
-        return Response(response, status=400)
-    phone = request.POST.get('phone')
-    password = request.POST.get('password')
-    first_name = request.POST.get('first_name')
-    last_name = request.POST.get('last_name')
-    latitude = str(request.POST.get('latitude'))
-    longitude = str(request.POST.get('longitude'))
+    try:
+        phone = str(int(request.POST.get('phone')))
+        password = request.POST.get('password')
+        password = str(request.POST.get('password'))
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        latitude = str(request.POST.get('latitude'))
+        longitude = str(request.POST.get('longitude'))
+        if not carrier._is_mobile(number_type(phonenumbers.parse(phone, "IR"))):
+            raise Exception
+    except:
+        return Response(invalid_fields_response, status=400)
     try:
         location_data = requests.get(url=f'{map_complete_addr}/reverse', params={
                                      'lat': latitude, 'lon': longitude, 'format': 'json'}, headers={'Accept-Language': 'fa-IR'}).json()
@@ -127,13 +121,12 @@ def sign_up_buyer(request):
                 }, status=400
             )
         location_data = location_data['address']
-    for item in ['suburb', 'neighbourhood']:
-        if item not in location_data:
-            return Response(
-                {
-                    'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
-                }, status=400
-            )
+    if ('city' not in location_data or 'suburb' not in location_data) and ('neighbourhood' not in location_data):
+        return Response(
+            {
+                'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
+            }, status=400
+        )
     profile_picture = request.FILES.get('profile_picture')
     with connection.cursor() as cursor:
         with transaction.atomic():
@@ -170,7 +163,7 @@ def sign_up_buyer(request):
                     INSERT INTO buyer_favorite_location (buyer_id, location,
                     city, neighborhood)
                     VALUES (%s, %s, %s, %s)
-                """, [buyer_id, f'{latitude}-{longitude}', location_data['suburb'], location_data['neighbourhood']]
+                """, [buyer_id, f'{latitude}-{longitude}', location_data.get('suburb') if location_data.get('suburb') else location_data.get('city'), location_data['neighbourhood']]
             )
             cursor.execute(
                 f"""
@@ -202,7 +195,7 @@ def sign_up_buyer(request):
         {
             "server_message": "ثبت نام با موفقیت انجام شد",
             "user_role": 'buyer',
-            "jwt": jwt.encode({"user_role": 'seller', "person_id": person_id, "role_id": buyer_id}, "uxrfcygvuh@b48651fdsa6s@#", algorithm="HS256")
+            "jwt": jwt.encode({"user_role": 'buyer', "person_id": person_id, "role_id": buyer_id}, "uxrfcygvuh@b48651fdsa6s@#", algorithm="HS256")
         }, status=200)
 
 
@@ -214,16 +207,21 @@ def store_registration(request):
             'server_message': 'فیلدها را به درستی پر نکرده‌اید'
         }
     )
+    try:
+        phone = str(int(request.POST.get('phone')))
+        password = request.POST.get('password')
+        owner_first_name = request.POST.get('owner_first_name')
+        owner_last_name = request.POST.get('owner_last_name')
+        owner_profile_picture = request.FILES.get('owner_profile_picture')
+        store_profile_picture = request.FILES.get('store_profile_picture')
+        store_name = request.POST.get('store_name')
+        store_latitude = request.POST.get('store_latitude')
+        store_longitude = request.POST.get('store_longitude')
+        if not carrier._is_mobile(number_type(phonenumbers.parse(phone, "IR"))):
+            raise Exception
+    except:
+        return Response(invalid_fields_response, status=400)
 
-    phone = request.POST.get('phone')
-    password = request.POST.get('password')
-    owner_first_name = request.POST.get('owner_first_name')
-    owner_last_name = request.POST.get('owner_last_name')
-    owner_profile_picture = request.FILES.get('owner_profile_picture')
-    store_profile_picture = request.FILES.get('store_profile_picture')
-    store_name = request.POST.get('store_name')
-    store_latitude = request.POST.get('store_latitude')
-    store_longitude = request.POST.get('store_longitude')
     try:
         location_data = requests.get(url=f'{map_complete_addr}/reverse', params={
                                      'lat': store_latitude, 'lon': store_longitude, 'format': 'json'}, headers={'Accept-Language': 'fa-IR'}).json()
@@ -239,13 +237,12 @@ def store_registration(request):
                 }, status=400
             )
         location_data = location_data['address']
-    for item in ['suburb', 'neighbourhood']:
-        if item not in location_data:
-            return Response(
-                {
-                    'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
-                }, status=400
-            )
+    if ('city' not in location_data or 'suburb' not in location_data) and ('neighbourhood' not in location_data):
+        return Response(
+            {
+                'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
+            }, status=400
+        )
     store_profile_picture = request.FILES.get('store_profile_picture')
     working_times = request.POST.get('working_times')
     invalid_fields = False
@@ -267,8 +264,6 @@ def store_registration(request):
                 invalid_fields = True
                 break
     if invalid_fields:
-        return Response(invalid_fields_response, status=400)
-    if not carrier._is_mobile(number_type(phonenumbers.parse(request.POST.get('phone'), "IR"))):
         return Response(invalid_fields_response, status=400)
 
     with connection.cursor() as cursor:
@@ -314,7 +309,7 @@ def store_registration(request):
                 """
                     INSERT INTO store_location (store_id, location, city, neighborhood)
                     VALUES (%s, %s, %s, %s)
-                """, [store_id, f'{store_latitude}-{store_longitude}', location_data['suburb'], location_data['neighbourhood']]
+                """, [store_id, f'{store_latitude}-{store_longitude}', location_data.get('suburb') if location_data.get('suburb') else location_data.get('city'), location_data['neighbourhood']]
             )
 
             for day_details in working_times:
@@ -383,17 +378,14 @@ def store_registration(request):
 
 @api_view(['POST'])
 def login(request):
-    response = dict()
-    response.update(
-        {
-            'server_message': 'فیلدها را به درستی پر نکرده‌اید'
-        }
-    )
-    if not request.POST.get('phone') or not carrier._is_mobile(number_type(phonenumbers.parse(request.POST.get('phone'), "IR"))):
-        return Response(response, status=400)
+    try:
+        phone = str(int(request.POST.get('phone')))
+        password = request.POST.get('password')
+        if not carrier._is_mobile(number_type(phonenumbers.parse(phone, "IR"))):
+            raise Exception
+    except:
+        return Response(invalid_fields_response, status=400)
 
-    phone = request.POST.get('phone')
-    password = request.POST.get('password')
     with connection.cursor() as cursor:
         with transaction.atomic():
             cursor.execute(
@@ -421,7 +413,8 @@ def login(request):
         "user_role": user_role,
         "jwt": jwt.encode({"user_role": user_role, "person_id": person_id, "role_id": role_id}, "uxrfcygvuh@b48651fdsa6s@#", algorithm="HS256")
     }, status=200)
-    
+
+
 @api_view(['GET'])
 def favorite_locations(request):
     with connection.cursor() as cursor:
@@ -449,6 +442,7 @@ def favorite_locations(request):
             )
         return Response(res_list, status=200)
 
+
 @api_view(['POST'])
 def add_favorite_location(request):
     try:
@@ -472,13 +466,12 @@ def add_favorite_location(request):
                 }, status=400
             )
         location_data = location_data['address']
-    for item in ['suburb', 'neighbourhood']:
-        if item not in location_data:
-            return Response(
-                {
-                    'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
-                }, status=400
-            )
+    if ('city' not in location_data or 'suburb' not in location_data) and ('neighbourhood' not in location_data):
+        return Response(
+            {
+                'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
+            }, status=400
+        )
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -490,7 +483,7 @@ def add_favorite_location(request):
         favorite_locations = dictfetchall(cursor)
         if len(favorite_locations):
             for saved_location in favorite_locations:
-                if saved_location['city'] == location_data['suburb'] and saved_location['neighborhood'] == location_data['neighbourhood']:
+                if saved_location['city'] == (location_data.get('suburb') if location_data.get('suburb') else location_data.get('city')) and saved_location['neighborhood'] == location_data['neighbourhood']:
                     return Response(
                         {
                             'server_message': 'مکان انتخاب شده نزدیک به یکی از مکان‌های قبلی است'
@@ -503,19 +496,20 @@ def add_favorite_location(request):
                 VALUES (%s, %s, %s, %s)
                 RETURNING buyer_favorite_location_id, city, neighborhood, city,
                 location
-            """, [f'{latitude}-{longitude}', location_data['suburb'], location_data['neighbourhood'], request.role_id]
+            """, [f'{latitude}-{longitude}', location_data.get('suburb') if location_data.get('suburb') else location_data.get('city'), location_data['neighbourhood'], request.role_id]
         )
         inserted_row = dictfetchall(cursor)[0]
         return Response(
             {
                 'server_message': 'مکان جدید اضافه شد',
-                'id': inserted_row['buyer_favorite_location_id'], 
+                'id': inserted_row['buyer_favorite_location_id'],
                 'title': inserted_row['city']+'، '+inserted_row['neighborhood'],
                 'latitude': latitude,
                 'longitude': longitude
             }, status=200
         )
-    
+
+
 @api_view(['POST'])
 def edit_favorite_location(request):
     try:
@@ -539,13 +533,12 @@ def edit_favorite_location(request):
                 }, status=400
             )
         location_data = location_data['address']
-    for item in ['suburb', 'neighbourhood']:
-        if item not in location_data:
-            return Response(
-                {
-                    'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
-                }, status=400
-            )
+    if ('city' not in location_data or 'suburb' not in location_data) and ('neighbourhood' not in location_data):
+        return Response(
+            {
+                'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
+            }, status=400
+        )
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -559,7 +552,7 @@ def edit_favorite_location(request):
             for saved_location in favorite_locations:
                 if saved_location['buyer_favorite_location_id'] == favorite_location_id:
                     continue
-                if saved_location['city'] == location_data['suburb'] and saved_location['neighborhood'] == location_data['neighbourhood']:
+                if saved_location['city'] == location_data.get('suburb') if location_data.get('suburb') else location_data.get('city') and saved_location['neighborhood'] == location_data['neighbourhood']:
                     return Response(
                         {
                             'server_message': 'مکان انتخاب شده نزدیک به یکی از مکان‌های قبلی است'
@@ -585,7 +578,7 @@ def edit_favorite_location(request):
                 SET location = %s, city = %s, neighborhood = %s
                 WHERE buyer_favorite_location_id = %s AND buyer_id = %s
                 RETURNING buyer_favorite_location_id, city, neighborhood
-            """, [f'{latitude}-{longitude}', location_data['suburb'], location_data['neighbourhood'], favorite_location_id, request.role_id]
+            """, [f'{latitude}-{longitude}', location_data.get('suburb') if location_data.get('suburb') else location_data.get('city'), location_data['neighbourhood'], favorite_location_id, request.role_id]
         )
         edited_row = dictfetchall(cursor)
         if len(res):
@@ -595,11 +588,12 @@ def edit_favorite_location(request):
                     'server_message': 'مکان انتخابی ویرایش شد',
                     'id': favorite_location_id,
                     'title': edited_row['city']+'، '+edited_row['neighborhood'],
-                    'latitude': latitude, 
+                    'latitude': latitude,
                     'longitude': longitude
                 }, status=200
             )
-    
+
+
 @api_view(['POST'])
 def remove_favorite_location(request):
     try:
@@ -641,6 +635,7 @@ def remove_favorite_location(request):
                     'server_message': 'چنین مکانی برای شما ثبت نشده'
                 }, status=400
             )
+
 
 @api_view(['POST'])
 def nearby_products(request):
@@ -690,7 +685,7 @@ def nearby_products(request):
             store_latitude = float(store['location'].split('-')[0])
             store_longitude = float(store['location'].split('-')[1])
 
-            if (distance := haversine(buyer_latitude, buyer_longitude, store_latitude, store_longitude)) <= 5:
+            if (distance := haversine(buyer_latitude, buyer_longitude, store_latitude, store_longitude)) <= 5000:
                 nearby_stores.append(
                     {
                         'store_id': store['store_id'],
@@ -725,7 +720,7 @@ def nearby_products(request):
     for product in stores_products:
         for store in nearby_stores:
             if store['store_id'] == product['store_id']:
-                product_distance = round(float(store['distance']), 1)
+                product_distance = store['distance']
                 break
         nearby_products_list.append(
             {
@@ -734,7 +729,7 @@ def nearby_products(request):
                 "title": product['seller_title'],
                 "price_per_unit": product["price_per_unit"],
                 "unit": product['unit_type'],
-                "distance": f'{product_distance} کیلومتر',
+                "distance": product_distance,
                 "expire_time": product['epoch_expire_time']
             }
         )
@@ -834,6 +829,7 @@ def cart_items(request):
                     'cart_item_amount': item['amount'],
                     'available_amount': item['available_amount'],
                     'unit': item['unit_type'],
+                    'expire_time_epoch': item['epoch_expire_time'],
                     'store': {
                         'id': item['store_id'],
                         'name': item['store_name'],
@@ -951,6 +947,7 @@ def add_to_cart(request):
                         'price_per_unit': item['price_per_unit'],
                         'cart_item_amount': item['amount'],
                         'available_amount': item['available_amount'],
+                        'expire_time_epoch': item['epoch_expire_time'],
                         'unit': item['unit_type'],
                         'store': {
                             'id': item['store_id'],
@@ -1042,6 +1039,7 @@ def remove_from_cart(request):
                         'cart_item_amount': item['amount'],
                         'available_amount': item['available_amount'],
                         'unit': item['unit_type'],
+                        'expire_time_epoch': item['epoch_expire_time'],
                         'store': {
                             'id': item['store_id'],
                             'name': item['store_name'],
@@ -1121,7 +1119,7 @@ def finalize_cart(request):
                 """, [request.person_id]
             )
             credit = dictfetchall(cursor)[0]['credit']
-            
+
             if total_price > credit:
                 return Response(
                     {
@@ -1145,7 +1143,7 @@ def finalize_cart(request):
                     WHERE person_id = %s
                 """, [total_price, request.person_id]
             )
-            
+
             for group in grouped_items:
                 if not len(group):
                     continue
@@ -1170,12 +1168,12 @@ def finalize_cart(request):
                             SET available_amount = available_amount - %s
                             WHERE product_id = %s;
                         """, [
-                                product['product_id'], 
-                                product['price_per_unit'], 
-                                product['cart_item_amount'], 
-                                order_id, product['cart_item_id'],
-                                product['cart_item_amount'],
-                                product['product_id']
+                            product['product_id'],
+                            product['price_per_unit'],
+                            product['cart_item_amount'],
+                            order_id, product['cart_item_id'],
+                            product['cart_item_amount'],
+                            product['product_id']
                         ]
                     )
             if cart_items_db_obj:
@@ -1213,7 +1211,7 @@ def orders_list(request):
             )
             order_items_db_obj = dictfetchall(cursor)
             order_items = list()
-            
+
             for item in order_items_db_obj:
                 cursor.execute(
                     """
@@ -1247,7 +1245,8 @@ def orders_list(request):
                     "orders": order_items
                 }, status=200
             )
-            
+
+
 @api_view(['POST'])
 def category_products(request):
     try:
@@ -1344,9 +1343,10 @@ def category_products(request):
         if re_calculate:
             cursor.execute(
                 """
-                    SELECT * FROM buyer_favorite_location
-                    WHERE buyer_favorite_location_id = %s
-                """, [favorite_location_id]
+                    SELECT *
+                    FROM buyer_favorite_location
+                    WHERE buyer_favorite_location_id = %s AND buyer_id = %s
+                """, [favorite_location_id, request.role_id]
             )
             try:
                 res = dictfetchall(cursor)[0]
@@ -1364,9 +1364,9 @@ def category_products(request):
                     LEFT JOIN unit_type u ON (p.unit_type_id = u.unit_type_id)
                     LEFT JOIN store s ON (p.store_id = s.store_id)
                     LEFT JOIN store_location sl ON (s.store_id = sl.store_id)
-                    WHERE sl.city = %s AND p.available_amount > 0 AND
+                    WHERE p.available_amount > 0 AND
                     p.category_id = %s
-                """, [buyer_city, category_id]
+                """, [category_id]
             )
             res = dictfetchall(cursor)
             products_list = list()
@@ -1379,7 +1379,7 @@ def category_products(request):
                             "title": product['seller_title'],
                             "price_per_unit": product["price_per_unit"],
                             "unit": product['unit_type'],
-                            "distance": round(haversine(buyer_latitude, buyer_longitude, float(product['location'].split('-')[0]), float(product['location'].split('-')[1])), 1),
+                            "distance": haversine(buyer_latitude, buyer_longitude, float(product['location'].split('-')[0]), float(product['location'].split('-')[1])),
                             "expire_time": product['epoch_expire_time']
                         }
                     )
@@ -1396,7 +1396,7 @@ def category_products(request):
                         """
                             INSERT INTO category_products_cache (time,
                             favorite_location_id, distance, product_id, category_id)
-                            values (%s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s)
                         """, [int(time.time()), favorite_location_id, product['distance'], product['product_id'], category_db_obj['category_id']]
                     )
                 return Response(
@@ -1411,6 +1411,7 @@ def category_products(request):
                 return Response(
                     empty_product_list, status=200
                 )
+
 
 @api_view(['GET'])
 def get_stores(request):
@@ -1440,16 +1441,32 @@ def get_stores(request):
             }, status=200
         )
 
+
 @api_view(['POST'])
 def store_details(request):
-    try:
-        store_id = request.POST.get('store_id')
-    except:
-        return Response(
-            invalid_fields_response, status=400
-        )
-    response = dict()
     with connection.cursor() as cursor:
+        try:
+            store_id = request.POST.get('store_id')
+            favorite_location_id = request.POST.get('favorite_location_id')
+            print(favorite_location_id, request.role_id)
+            cursor.execute(
+                """
+                    SELECT *
+                    FROM buyer_favorite_location
+                    WHERE buyer_favorite_location_id = %s AND buyer_id = %s
+                """, [favorite_location_id, request.role_id]
+            )
+            favorite_location_db = dictfetchall(cursor)[0]
+            print(favorite_location_db)
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+            return Response(
+                invalid_fields_response, status=400
+            )
+        response = dict()
+        buyer_latitude = float(favorite_location_db['location'].split('-')[0])
+        buyer_longitude = float(favorite_location_db['location'].split('-')[1])
         cursor.execute(
             """
                 SELECT
@@ -1489,14 +1506,14 @@ def store_details(request):
                 WHERE seller_id = %s and available_amount > 0 and
                 epoch_expire_time > %s
                 ORDER BY product_id
-            """, [request.role_id, int(time.time())]
+            """, [store_db['seller_id'], int(time.time())*1000]
         )
         products_db = dictfetchall(cursor)
         products = list()
         for product in products_db:
             products.append(
                 {
-                    'id': product['product_id'],
+                    'product_id': product['product_id'],
                     'picture_id': encrypt(f'product_{product["picture"]}', key) if product['picture'] else '',
                     'title': product['seller_title'],
                     'unit': product['unit_type'],
@@ -1506,9 +1523,35 @@ def store_details(request):
                 }
             )
         response['products'] = products
+        cursor.execute(
+            """
+                SELECT *
+                FROM working_time
+                WHERE store_id = %s
+            """, [store_id]
+        )
+        working_times_db = dictfetchall(cursor)[0]
+        working_times = list()
+        days = ['saturday', 'sunday', 'monday',
+                'tuesday', 'wednesday', 'thursday', 'friday']
+        for index, day in enumerate(days):
+            working_times.append(
+                {
+                    'day_sequence_id': index + 1,
+                    'is_holiday_binary': working_times_db[day+'_holiday_status'],
+                    'times': {
+                        'start': working_times_db[day+'_start_working_time'],
+                        'end': working_times_db[day+'_end_working_time']
+                    }
+                }
+            )
+        response['working_times'] = working_times
+        response['distance'] = haversine(
+            buyer_latitude, buyer_longitude, response['store']['latitude'], response['store']['longitude'])
         return Response(
             response, status=200
         )
+
 
 @api_view(['GET'])
 def get_profile(request):
@@ -1531,6 +1574,7 @@ def get_profile(request):
                 'wallet_credit': person_information['credit']
             }, status=200
         )
+
 
 @api_view(['POST'])
 def update_profile(request):
@@ -1559,7 +1603,7 @@ def update_profile(request):
             cursor.execute(
                 """
                     UPDATE person
-                    SET password = %s
+                    SET password_hash = %s
                     WHERE person_id = %s
                 """, [hashlib.sha256(bytes(password, 'utf-8')).hexdigest(), request.person_id]
             )
@@ -1571,7 +1615,7 @@ def update_profile(request):
                     WHERE person_id = %s
                 """, [email, request.person_id]
             )
-        
+
         cursor.execute(
             """
                 SELECT *
@@ -1590,6 +1634,7 @@ def update_profile(request):
                 'wallet_credit': person_information['credit']
             }, status=200
         )
+
 
 @api_view(['POST'])
 def increase_wallet_credit(request):
@@ -1611,6 +1656,7 @@ def increase_wallet_credit(request):
                 'credit': dictfetchall(cursor)[0]['credit']
             }, status=200
         )
+
 
 @api_view(['POST'])
 def get_my_comments(request):
@@ -1638,18 +1684,18 @@ def get_my_comments(request):
         for comment in comments_db:
             comments.append(
                 {
-                'comment_id': comment['comment_id'],
-                'writer': comment['name'],
-                'submission_time': comment['submission_time_epoch'],
-                'title': comment['title'],
-                'description': comment['description'],
-                'user_score': comment['score'],
-                'product': {
-                    'id': comment['product_id'],
-                    'title': comment['seller_title']
+                    'comment_id': comment['comment_id'],
+                    'writer': comment['name'],
+                    'submission_time_epoch': comment['submission_time_epoch'],
+                    'title': comment['title'],
+                    'description': comment['description'],
+                    'user_score': comment['score'],
+                    'product': {
+                        'id': comment['product_id'],
+                        'title': comment['seller_title']
+                    }
                 }
-            }
-        )
+            )
         return Response(
             {
                 "group_number": group_number,
@@ -1685,14 +1731,14 @@ def get_product_comments(request):
         for comment in comments_db:
             comments.append(
                 {
-                'comment_id': comment['comment_id'],
-                'writer': comment['name'],
-                'submission_time': comment['submission_time_epoch'],
-                'title': comment['title'],
-                'description': comment['description'],
-                'user_score': comment['score']
-            }
-        )
+                    'comment_id': comment['comment_id'],
+                    'writer': comment['name'],
+                    'submission_time_epoch': comment['submission_time_epoch'],
+                    'title': comment['title'],
+                    'description': comment['description'],
+                    'user_score': comment['score']
+                }
+            )
         return Response(
             {
                 "group_number": group_number,
@@ -1700,6 +1746,7 @@ def get_product_comments(request):
                 "comments": comments
             }, status=200
         )
+
 
 @api_view(['POST'])
 def add_comment(request):
@@ -1754,6 +1801,7 @@ def add_comment(request):
                 'user_score': comment['score']
             }, status=200
         )
+
 
 @api_view(['POST'])
 def edit_comment(request):
@@ -1814,6 +1862,7 @@ def edit_comment(request):
             }, status=200
         )
 
+
 @api_view(['POST'])
 def remove_comment(request):
     with connection.cursor() as cursor:
@@ -1857,6 +1906,7 @@ def remove_comment(request):
             )
 # -------------- Vendor Section --------------
 
+
 @api_view(['POST'])
 def get_seller_products(request):
     try:
@@ -1872,7 +1922,7 @@ def get_seller_products(request):
                 'server_message': 'شما فروشنده نیستید'
             }, status=400
         )
-        
+
     with connection.cursor() as cursor:
         cursor.execute(
             f"""
@@ -1906,6 +1956,7 @@ def get_seller_products(request):
             }
         )
 
+
 @api_view(['POST'])
 def remove_product(request):
     try:
@@ -1932,7 +1983,8 @@ def remove_product(request):
                 'server_message': 'محصول انتخاب شده با موفق حذف شد'
             }, status=200
         )
-        
+
+
 @api_view(['GET'])
 def get_product_unit_types(request):
     with connection.cursor() as cursor:
@@ -1954,6 +2006,7 @@ def get_product_unit_types(request):
         return Response(
             reponse, status=200
         )
+
 
 @api_view(['POST'])
 def get_product_general_properties(request):
@@ -1983,6 +2036,7 @@ def get_product_general_properties(request):
             reponse, status=200
         )
 
+
 @api_view(['POST'])
 def get_product_exclusive_properties(request):
     try:
@@ -2011,6 +2065,7 @@ def get_product_exclusive_properties(request):
             reponse, status=200
         )
 
+
 @api_view(['POST'])
 def add_product(request):
     try:
@@ -2022,14 +2077,16 @@ def add_product(request):
         available_amount = float(request.POST.get('available_amount'))
         category_id = int(request.POST.get('category_id'))
         sub_category_id = None
-        if str(request.POST.get('sub_category_id')) not in ['-1', None , '']:
+        if str(request.POST.get('sub_category_id')) not in ['-1', None, '']:
             sub_category_id = int(request.POST.get('sub_category_id'))
         general_properties = list()
         if str(request.POST.get('general_properties')):
-            general_properties = json.loads(str(request.POST.get('general_properties')))
+            general_properties = json.loads(
+                str(request.POST.get('general_properties')))
         exclusive_properties = list()
         if str(request.POST.get('exclusive_properties')):
-            exclusive_properties = json.loads(str(request.POST.get('exclusive_properties')))
+            exclusive_properties = json.loads(
+                str(request.POST.get('exclusive_properties')))
         picture = request.FILES.get('picture')
     except Exception as e:
         print(e)
@@ -2093,9 +2150,9 @@ def add_product(request):
             """, [
                 request.role_id,
                 title,
-                description, 
-                expire_time_epoch, 
-                price_per_unit, 
+                description,
+                expire_time_epoch,
+                price_per_unit,
                 unit_type_id,
                 store_id,
                 sub_category_id if sub_category_id else None,
@@ -2147,7 +2204,8 @@ def add_product(request):
     return Response(
         product_details(request._request).data, status=200
     )
-    
+
+
 @api_view(['POST'])
 def edit_product(request):
     try:
@@ -2165,9 +2223,11 @@ def edit_product(request):
         if str(request.POST.get('sub_category_id')) not in ['', '-1']:
             sub_category_id = int(request.POST.get('sub_category_id'))
         if str(request.POST.get('general_properties')):
-            general_properties = json.loads(str(request.POST.get('general_properties')))
+            general_properties = json.loads(
+                str(request.POST.get('general_properties')))
         if str(request.POST.get('exclusive_properties')):
-            exclusive_properties = json.loads(str(request.POST.get('exclusive_properties')))
+            exclusive_properties = json.loads(
+                str(request.POST.get('exclusive_properties')))
         picture = request.FILES.get('picture')
     except:
         traceback.print_exc()
@@ -2279,9 +2339,9 @@ def edit_product(request):
                         WHERE product_id = %s;
                     """, [
                         title,
-                        description, 
-                        expire_time_epoch, 
-                        price_per_unit, 
+                        description,
+                        expire_time_epoch,
+                        price_per_unit,
                         unit_type_id,
                         available_amount,
                         category_id,
@@ -2358,7 +2418,8 @@ def edit_product(request):
                     if not os.path.exists(upload_dir):
                         os.makedirs(upload_dir)
                     fs = FileSystemStorage(location=upload_dir)
-                    file_name = str(res['product_id']) + os.path.splitext(picture.name)[1]
+                    file_name = str(res['product_id']) + \
+                        os.path.splitext(picture.name)[1]
                     file_path = fs.path(file_name)
                     if fs.exists(file_name):
                         os.remove(file_path)
@@ -2379,7 +2440,7 @@ def edit_product(request):
         product_details(request._request).data, status=200
     )
 
-        
+
 @api_view(['GET'])
 def get_seller_profile(request):
     with connection.cursor() as cursor:
@@ -2409,7 +2470,8 @@ def get_seller_profile(request):
         )
         working_times_db = dictfetchall(cursor)[0]
         working_times = list()
-        days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+        days = ['saturday', 'sunday', 'monday',
+                'tuesday', 'wednesday', 'thursday', 'friday']
         for index, day in enumerate(days):
             working_times.append(
                 {
@@ -2438,6 +2500,7 @@ def get_seller_profile(request):
                 'wallet_credit': seller_information['credit']
             }, status=200
         )
+
 
 @api_view(['POST'])
 def edit_seller_profile(request):
@@ -2471,13 +2534,13 @@ def edit_seller_profile(request):
                     break
         if invalid_fields:
             return Response(invalid_fields_response, status=400)
-    
+
     request._request.method = 'GET'
     current_data = get_seller_profile(request._request).data
-    if not seller_name: 
+    if not seller_name:
         seller_name = current_data['seller_name']
     if not seller_lastname:
-        seller_lastname =  current_data['seller_lastname']
+        seller_lastname = current_data['seller_lastname']
     if not store_name:
         store_name = current_data['store_name']
     if not store_latitude:
@@ -2486,10 +2549,10 @@ def edit_seller_profile(request):
         store_longitude = current_data['store_location']['longitude']
     if not working_times:
         working_times = current_data['working_times']
-    
+
     try:
         location_data = requests.get(url=f'{map_complete_addr}/reverse', params={
-                                    'lat': store_latitude, 'lon': store_longitude, 'format': 'json'}, headers={'Accept-Language': 'fa-IR'}).json()
+            'lat': store_latitude, 'lon': store_longitude, 'format': 'json'}, headers={'Accept-Language': 'fa-IR'}).json()
     except:
         return Response({
             'server_message': 'سرویس نقشه در دسترس نیست'
@@ -2502,13 +2565,13 @@ def edit_seller_profile(request):
                 }, status=400
             )
         location_data = location_data['address']
-    for item in ['suburb', 'neighbourhood']:
-        if item not in location_data:
-            return Response(
-                {
-                    'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
-                }, status=400
-            )
+    if ('city' not in location_data or 'suburb' not in location_data) and ('neighbourhood' not in location_data):
+        return Response(
+            {
+                'server_message': 'مکان انتخابی دارای جزئیات کافی نمی‌باشد. مکان دیگری را انتخاب کنید'
+            }, status=400
+        )
+
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -2538,7 +2601,7 @@ def edit_seller_profile(request):
                 UPDATE store_location
                 SET location = %s, city = %s, neighborhood = %s
                 WHERE store_id = %s 
-            """, [f'{store_latitude}-{store_longitude}', location_data['suburb'], location_data['neighbourhood'], store_id]
+            """, [f'{store_latitude}-{store_longitude}', location_data.get('suburb') if location_data.get('suburb') else location_data.get('city'), location_data['neighbourhood'], store_id]
         )
         cursor.execute(
             """
@@ -2578,6 +2641,7 @@ def edit_seller_profile(request):
                 """, [file_name, store_id]
             )
         return Response(get_seller_profile(request._request).data, status=200)
+
 
 @api_view(['POST'])
 def get_seller_orders(request):
@@ -2646,6 +2710,8 @@ def get_seller_orders(request):
         )
 
 # -------------- Common Section --------------
+
+
 @api_view(['POST'])
 def product_details(request):
     try:
@@ -2656,11 +2722,12 @@ def product_details(request):
         else:
             raise Exception
         if request.user_role == 'buyer':
-            favorite_location_id = int(request.POST.get('favorite_location_id'))
+            favorite_location_id = int(
+                request.POST.get('favorite_location_id'))
     except Exception as e:
         print(e)
         return Response(invalid_fields_response, status=400)
-        
+
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -2766,7 +2833,7 @@ def product_details(request):
                 if property['property_value'].isnumeric():
                     for item in ['تاریخ', 'زمان']:
                         if (property['exclusive_property_name'] and item in property['exclusive_property_name'])\
-                            or (property['general_property_name'] and item in property['general_property_name']):
+                                or (property['general_property_name'] and item in property['general_property_name']):
                             value = f"date-{int(property['property_value'])}"
                             break
                     else:
@@ -2817,9 +2884,9 @@ def product_details(request):
         }
         if product_db_obj['category_id']:
             response['category'] = {
-                    'id': product_db_obj['category_id'],
-                    'name': product_db_obj['category_name']
-                }
+                'id': product_db_obj['category_id'],
+                'name': product_db_obj['category_name']
+            }
         if product_db_obj['sub_category_id']:
             response['sub_category'] = {
                 'id': product_db_obj['sub_category_id'],
@@ -2830,7 +2897,7 @@ def product_details(request):
         if request.user_role == 'buyer':
             response.update(
                 {
-                    'distance': f"{round(haversine(float(product_db_obj['location'].split('-')[0]), float(product_db_obj['location'].split('-')[1]), float(favorite_location_db_obj['location'].split('-')[0]), float(favorite_location_db_obj['location'].split('-')[1])), 1)} کیلومتر",
+                    'distance': haversine(float(product_db_obj['location'].split('-')[0]), float(product_db_obj['location'].split('-')[1]), float(favorite_location_db_obj['location'].split('-')[0]), float(favorite_location_db_obj['location'].split('-')[1])),
                     'amount_in_cart': amount_in_cart if amount_in_cart else 0
                 }
             )
@@ -2859,6 +2926,7 @@ def get_product_categories(request):
             new_list, status=200
         )
 
+
 @api_view(['POST'])
 def get_product_sub_categories(request):
     try:
@@ -2877,8 +2945,8 @@ def get_product_sub_categories(request):
         return Response(
             res, status=200
         )
-        
-        
+
+
 @api_view(['POST'])
 def order_products(request):
     try:
@@ -2938,17 +3006,17 @@ def order_products(request):
             products_list = list()
             total_purchase_price = 0
             for product in products:
-                products_list.append(
-                    {
-                        'product_id': product['product_id'],
-                        'title': product['seller_title'],
-                        'picture_id': encrypt(f'product_{product["picture"]}', key) if product['picture'] else '',
-                        'amount': product['purchased_amount'],
-                        'unit': product['unit_type'],
-                        'price_per_unit': product['purchased_price_per_unit']
-                    }
-                )
-                total_purchase_price += product['purchased_price_per_unit'] * product['purchased_amount']
+                product_to_append = {
+                    'product_id': product['product_id'],
+                    'title': product['seller_title'],
+                    'picture_id': encrypt(f'product_{product["picture"]}', key) if product['picture'] else '',
+                    'amount': product['purchased_amount'],
+                    'unit': product['unit_type'],
+                    'price_per_unit': product['purchased_price_per_unit']
+                }
+                products_list.append(product_to_append)
+                total_purchase_price += product['purchased_price_per_unit'] * \
+                    product['purchased_amount']
             response = {
                 'order_id': order_details_db_obj['order_id'],
                 'total_purchase_price': total_purchase_price,
@@ -2957,7 +3025,7 @@ def order_products(request):
                 'status': order_details_db_obj['order_status_name'],
                 'products': products_list
             }
-            if request.user_role == 'buyer': 
+            if request.user_role == 'buyer':
                 response['seller'] = {
                     'id': order_details_db_obj['seller_id'],
                     'name': order_details_db_obj['seller_name']+' '+order_details_db_obj['seller_lastname'],
@@ -3027,7 +3095,7 @@ def complete_order(request):
                 'order_id': order_id
             }, status=200
         )
-        
+
 
 # -------------- Admin Panel --------------
 @api_view(['POST'])
@@ -3036,16 +3104,17 @@ def admin_login(request):
     password = request.POST.get('password')
     if username == 'test' and password == 'test':
         return Response(
-        {
-            "server_message": "ورود با موفقیت انجام شد",
-            "jwt": jwt.encode({"user_role": 'admin'}, "uxrfcygvuh@b48651fdsa6s@#", algorithm="HS256")
-        }, status=200)
+            {
+                "server_message": "ورود با موفقیت انجام شد",
+                "jwt": jwt.encode({"user_role": 'admin'}, "uxrfcygvuh@b48651fdsa6s@#", algorithm="HS256")
+            }, status=200)
     else:
         return Response(
             {
                 'server_message': 'نام کاربری یا رمز عبور اشتباه است'
             }, status=400
         )
+
 
 @api_view(['GET'])
 def admin_orders_list(request):
@@ -3096,7 +3165,8 @@ def admin_orders_list(request):
                     "orders": order_items
                 }, status=200
             )
-            
+
+
 @api_view(['GET'])
 def admin_top_bar(request):
     if request.user_role != 'admin':
@@ -3131,7 +3201,7 @@ def admin_top_bar(request):
                 'prgress': "1.3",
                 'increase': '+30%'
             },
-            
+
         ], status=200
     )
     # with connection.cursor() as cursor:
@@ -3159,7 +3229,7 @@ def admin_top_bar(request):
     #             """,
     #         )
     #         previous_week_orders = dictfetchall(cursor)[0]['count']
-            
+
     #         return Response(
     #             {
     #                 "orders": order_items
